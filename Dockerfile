@@ -14,7 +14,7 @@ RUN pip3 install --user --upgrade pip && \
     pip3 install --user -r ./app/requirements.txt && \
     pip3 cache purge
 
-COPY . /app
+COPY lsb-defense /app
 
 EXPOSE 9000 9001
 ENTRYPOINT ["sh", "/entrypoint.sh"]
