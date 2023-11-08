@@ -1,5 +1,5 @@
 from FeatureCloud.app.engine.app import AppState, app_state, Role
-from lsb_sanitization import sanitize_params, compare_original_to_modified
+from lsb_sanitization import sanitize_params, compare_original_to_modified, sanitize_model, compare_graph_structure
 import onnx
 import os
 import bios
@@ -66,7 +66,7 @@ class sanitization(AppState):
 
   def run(self):
       self.update(progress=0.4)
-      modified_model = sanitize_params(self.load("original_model"), self.load("n_lsbs"))
+      modified_model = sanitize_model(self.load("original_model"), self.load("n_lsbs"))
       self.update(progress=0.5)
       self.log('Model parameters sanitized successfully')
       self.store(key="modified_model", value=modified_model)
@@ -76,15 +76,17 @@ class sanitization(AppState):
           self.log('The structure of the original and modified models are the same')
       elif structure == False:
           self.log('Error during sanitization: The structure of the original and modified models are not the same')
+      comp_graph_structure = compare_graph_structure(self.load("original_model"), modified_model)
+      if comp_graph_structure == True:
+          self.log('The computational graph str. of the models are the same')
+      elif comp_graph_structure == False:
+          self.log('Error during sanitization: The computational graph str. models are not the same')
       self.update(progress=0.7)
       return 'output'
 
 
 @app_state('output')
 class OutputState(AppState):
-    """
-    Broadcasting the defended model
-    """
     def register(self):
         self.register_transition('terminal', Role.BOTH)
 

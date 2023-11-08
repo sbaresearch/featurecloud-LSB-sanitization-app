@@ -1,2 +1,2 @@
-model_name: "yolov4"
-n_lsbs: 1
+model_name: "model"
+n_lsbs: 10

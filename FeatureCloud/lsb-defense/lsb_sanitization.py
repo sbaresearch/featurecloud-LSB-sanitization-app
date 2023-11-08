@@ -6,13 +6,6 @@ import numpy as np
 
 
 
-
-
-
-#def float2bin32(f):
-#    return ''.join('{:0>8b}'.format(c) for c in struct.pack('!f', f))
-
-# Function to convert float to binary
 def float_to_binary32(value):
     return format(struct.unpack('!I', struct.pack('!f', value))[0], '032b')
 
@@ -107,6 +100,127 @@ def compare_original_to_modified(original_model, modified_model):
 
     return same_structure
 
+
+def compare_graph_structure(original_model, modified_model):
+    # Check if the nodes in both graphs have the same structure
+    if len(original_model.graph.node) != len(modified_model.graph.node):
+        return False
+
+    for original_node, modified_node in zip(original_model.graph.node, modified_model.graph.node):
+        if original_node.op_type != modified_node.op_type:
+            return False
+        if original_node.input != modified_node.input:
+            return False
+        if original_node.output != modified_node.output:
+            return False
+
+    return True
+
+
 def sanitize_params(model, n_lsbs):
     modified_model = modify_and_update_data(model, n_lsbs)
     return modified_model
+
+# Function to convert float to binary representation
+def float_to_binary(value):
+    """ Assumes a float32 or float64 value """
+    if value.dtype == np.float64:
+        return format(struct.unpack('!Q', struct.pack('!d', value))[0], '064b')
+    elif value.dtype == np.float32:
+        return format(struct.unpack('!I', struct.pack('!f', value))[0], '032b')
+    else:
+        raise TypeError("Unsupported type, only float32 and float64 are supported")
+
+# Function to modify the least significant bits of a float value
+def modify_lsb(binary_str, n_lsbs):
+    """ Modify the least significant bits of a binary string """
+    return binary_str[:-n_lsbs] + '0' * n_lsbs
+
+# Function to convert binary representation back to float
+def binary_to_float(binary_str, dtype):
+    """ Assumes a binary string representing a float32 or float64 """
+    if dtype == np.float64:
+        return struct.unpack('!d', struct.pack('!Q', int(binary_str, 2)))[0]
+    elif dtype == np.float32:
+        return struct.unpack('!f', struct.pack('!I', int(binary_str, 2)))[0]
+    else:
+        raise TypeError("Unsupported type, only float32 and float64 are supported")
+
+# Function to modify only float parameters of a model
+def modify_float_params(model, n_lsbs):
+    """
+    Check if the data is stored as raw_data or directly as numeric data (otherwise attacker can bypass the defense)
+    Check if the data is stored as float
+    Apply LSB modification to the float values
+    """
+    for initializer in model.graph.initializer:
+        # Check if the data is in raw format
+        if initializer.HasField('raw_data'):
+            data = numpy_helper.to_array(initializer)
+        else:
+            # Assume the data is in float format
+            data = np.array(initializer.float_data).reshape(initializer.dims)
+        if data.dtype == np.float32 or data.dtype == np.float64:
+            # Flatten the data for individual modifications
+            flat_data = data.flatten()
+            modified_flat_data = np.array([
+                binary_to_float(modify_lsb(float_to_binary(val), n_lsbs), data.dtype)
+                for val in flat_data
+            ], dtype=data.dtype).reshape(data.shape)
+            # Replace the initializer data with modified data
+            initializer.CopyFrom(numpy_helper.from_array(modified_flat_data, initializer.name))
+    return model
+
+# Function to modify the least significant bits of an integer value
+def modify_lsb_for_integers(value, n_lsbs):
+    """
+    Modify up to n_lsbs least significant bits of an integer to zero,
+    without changing more bits than the integer has.
+    """
+    # Convert the NumPy int64 to native Python int before calling bit_length
+    bits_needed = int(value).bit_length()
+
+    # Determine the number of bits we can actually modify
+    bits_to_modify = min(n_lsbs, bits_needed)
+
+    # Create a mask for the bits to modify
+    mask = (1 << bits_to_modify) - 1
+
+    # Apply the mask to zero out the LSBs
+    modified_value = value & ~mask
+
+    return modified_value
+
+
+# Function to apply LSB modification to integer initializers in the model
+def modify_integer_params(model, n_lsbs):
+    """
+    Check if the data is stored as raw_data or directly as numeric data (otherwise attacker can bypass the defense)
+    Check if the data is of integer type
+    Apply LSB modification to the integer values
+    """
+    for initializer in model.graph.initializer:
+        # Check if the data is in raw format
+        if initializer.HasField('raw_data'):
+            data = numpy_helper.to_array(initializer)
+        else:
+            # Assume the data is in float format
+            data = np.array(initializer.float_data).reshape(initializer.dims)
+        # Check if the data is of integer type
+        if np.issubdtype(data.dtype, np.integer):
+            # Apply the LSB modification
+            flat_data = data.flatten()
+            # Modify this line in the list comprehension
+            modified_flat_data = np.array([modify_lsb_for_integers(int(val), n_lsbs) for val in flat_data], dtype=data.dtype).reshape(data.shape)
+            # Replace the initializer data with modified data
+            initializer.CopyFrom(numpy_helper.from_array(modified_flat_data, initializer.name))
+    return model
+
+def sanitize_model(model, n_lsbs):
+    """
+    Take an ONNX model, modify its numeric parameters' LSBs, and save to a new file.
+    """
+    modified_model_float = modify_float_params(model, n_lsbs)
+    modified_model_full = modify_integer_params(modified_model_float, n_lsbs)
+    return modified_model_full
+
