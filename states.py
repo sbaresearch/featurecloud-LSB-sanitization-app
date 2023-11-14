@@ -94,7 +94,7 @@ class OutputState(AppState):
         self.update(progress=0.8)
         modified_model = self.load('modified_model')
         self.update(progress=0.9)
-        onnx.save(modified_model, f'{OUTPUT_DIR}modified_model.onnx')
+        onnx.save(modified_model, f'{OUTPUT_DIR}sanitized_model.onnx')
         n_lsbs = self.load('n_lsbs')
         self.update(progress=1)
         self.log(f'The {n_lsbs} LSBs of model parameters were sanitized')
