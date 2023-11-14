@@ -19,35 +19,6 @@ def modify_lsb(value, n_lsbs):
     modified_binary = binary_value[:-n_lsbs] + '0' * n_lsbs
     return binary32_to_float(modified_binary)
 
-#def count_parameters(model):
-#    return sum(p.numel() for p in model.parameters())
-
-
-"""
-def params_to_bits(params):
-    params_as_bits = []
-    for key, value in params.items():
-        if isinstance(value, torch.Tensor):
-            flattened_value = value.flatten()  # flatten the tensor
-            for v in flattened_value:
-                params_as_bits.extend(float2bin32(v))
-    params_as_bits = ''.join(params_as_bits)
-    return params_as_bits
-
-def prepare_params(params):
-    # ==========================================================================================
-    # PREPARE PARAMETERS
-    # ==========================================================================================
-    #get the shape of the parameters - Each key in the dictionary should be a string representing the name of a parameter,
-    #and each value should be a tuple representing the shape of the corresponding tensor.
-    params_shape_dict = {}
-    for key, value in params.items():
-        params_shape_dict[key] = value.shape
-    #convert the parameters to bits
-    params_as_bits = params_to_bits(params)
-    # ==========================================================================================
-    return params_as_bits, params_shape_dict
-"""
 
 # Function to modify the least significant bits and update raw_data
 def modify_and_update_data(model, n_lsbs):
