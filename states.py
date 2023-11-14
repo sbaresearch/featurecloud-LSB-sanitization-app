@@ -18,7 +18,6 @@ class InitialState(AppState):
     def register(self):
         self.register_transition('read_input', Role.COORDINATOR)
         self.register_transition('output', Role.PARTICIPANT)
-        #self.register_transition('terminal')  # We declare that 'terminal' state is accessible from the 'initial' state.
 
     def run(self):
         self.update(progress=0.1)
@@ -26,8 +25,6 @@ class InitialState(AppState):
             return 'read_input'
         else:
             return 'output'
-
-    #return 'terminal'  # This means we are done. If the coordinator transitions into the 'terminal' state, the whole computation will be shut down.
 
 #a state for reading inputs
 @app_state('read_input')
