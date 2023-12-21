@@ -2,6 +2,7 @@
 
 The app implements a defense against a white-box data exfiltration attack by sanitizing the given number of least significant bits of trainable ML model parameters.
 
+
 ## Description
 
 The information hidden in the model parameters will be modified or removed by sanitizing the least significant bits of the parameters.
