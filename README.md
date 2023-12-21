@@ -1,10 +1,9 @@
-# FeatureCloud Parameter Sanitization Defense App
+# FeatureCloud Parameter Sanitization App
 
-`
+The app implements a defense against a white-box data exfiltration attack by sanitizing the given number of least significant bits of trainable ML model parameters.
 
 ## Description
 
-The app implements a defense against a white-box data exfiltration attack by sanitizing the given number of least significant bits of trainable ML model parameters.
 The information hidden in the model parameters will be modified or removed by sanitizing the least significant bits of the parameters.
 The sanitized model can be used for inference. It is important to note that applying this defense might compromise the original performance of the model.
 Furthermore, this approach can potentially remove a watermark embedded in the model parameters.
