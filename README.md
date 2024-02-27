@@ -19,6 +19,8 @@ This app is designed for a single-client/coordinator usage. A client's data fold
 - **config**.yml: the configuration file of the app [`config.yml`]
 - **model** to be sanitized in onnx format, e.g. [`model.onnx`]
 
+An example config.yml file and a sample model named "simple_mlp.onnx" is added to the repository for the purpose of testing the app. These files are provided in the "featurecloud-sign-modification-app/data/general_directory". The location of the data folder when testing is determined by the location of where the featurecloud controller is started, therefore you might need to manually create a data folder including the general_directory at the same level as the app directory, and move the config and model file there.
+
 #### Config file
 
 This file contains the hyperparameters that need to be provided by the client for the execution of the app:
