@@ -40,7 +40,7 @@ The sanitized model can be used for further inference.
 
 ## Workflows
 
-As anoher app is unable to call this app to perform the defense in a federated setting, the defense can be applied as a single-client defense on one model at a time, and can therefore be used e.g. by the aggregator to defend the final, aggregated model.
+As another app is unable to call this app to perform the defense in a federated setting, the defense can be applied as a single-client defense on one model at a time, and can therefore be used e.g. by the aggregator to defend the final, aggregated model.
 
 ### AppStates
 
